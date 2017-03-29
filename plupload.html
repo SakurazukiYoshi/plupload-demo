@@ -1,0 +1,82 @@
+<script type="text/javascript" src="jquery.min.js"></script>
+<script type="text/javascript" src="plupload/plupload.full.min.js"></script>
+<div id="section_title_1">
+    <a id="pickfiles_1" class="pickfiles btn btn-primary" href="javascript:;">选择图片</a>
+</div>
+<div id="upload_img_list_1" class="upload_img_list">
+</div>
+<input type="hidden" name="img_list[]" value="1.jpg" />
+<input type="hidden" name="img_list[]" value="1.jpg" />
+<input type="hidden" name="img_list[]" value="1.jpg" />
+
+
+<script>
+
+    var upload_count = 0;
+    var flag=0;   //用于显示上传中的图片显示，为1的时候不现实上传中，为0的时候显示
+
+    var a=0;
+    var uploader_1 = new plupload.Uploader({
+        runtimes: 'html5,flash,html4',   //上传方式可以不填
+        browse_button: 'uploaderInput',   //出发文件选择的Dom元素，这里用是a标签
+        container: document.getElementById('section_title_1'),  //Plupload所创建的html结构的父容器，默认为browse_button的父元素
+        max_file_size: '2mb',   //限制文件大小大小
+        flash_swf_url: 'plupload/Moxie.swf',  //flash上传组件的url地址
+        url : 'imgUpload',  //服务器端接收和处理上传文件的脚本地址
+        auto_start: true,
+        multipart_params:{  //上传时的附加参数
+            'app_id':130
+        },
+        filters: {  //限制上传文件的类型，大小，是否能提交相同图片
+            max_file_size : '2mb',
+            prevent_duplicates : false   //true不允许多次提交相同图片，false允许
+
+            /*        mime_types: [      允许的话很多手机没有应用可执行操作
+             {title : "Image files", extensions :"jpg,gif,png" }//
+             ]*/
+        },
+        init: {
+            'FilesAdded': function(up, files) {
+                plupload.each(files, function(file) {
+                    // 文件添加进队列后,处理相关的事情
+                    upload_count++;
+                });
+                uploader_1.start();
+            },
+            'BeforeUpload': function(up, file) {
+            },
+            'UploadProgress': function(up, file) {   //上传过程
+                flag++;
+                var li='<li class="weui-uploader__file uploading" id="uploading"><span>0</span></li>';
+                if(flag==1){
+                    $("#upload_img_list_1").append(li);
+                }
+                $("#uploading").html(file.percent+"%");   //显示上传进度条
+            },
+            'FileUploaded': function(up, file, info) {
+                var res = jQuery.parseJSON(info.response);
+                url=res.url;
+                var img_info='<li class="weui-uploader__file" data-url="'+res.url+'">' +
+                        '<img src="'+res.url+'"  style=" width:100%; height:100%">'+
+                        '<div class="close">X</div>' +
+                        ' </li>';
+                $("#upload_img_list_1").append(img_info);
+            },
+            'Error': function(up, err, errTip) {   //上传出错的情况
+                var li='<li class="weui-uploader__file uploading" id="uploading"><span>上传出错</span></li>';
+                $("#upload_img_list_1").append(li);
+                setTimeout(function () {
+                    $("#uploading").remove();
+                }, 2000);
+
+            },
+            'UploadComplete': function() {   //上传完成
+                $("#uploading").remove();
+                flag=0;
+            }
+        }
+    });
+    uploader_1.init();
+
+
+</script>
